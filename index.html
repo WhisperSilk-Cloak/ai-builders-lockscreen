@@ -1,0 +1,1121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Builders Challenge North America — Countdown Lock Screen</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-base: #040814;
+      --bg-card: rgba(10, 18, 36, 0.82);
+      --bg-card-hover: rgba(15, 28, 56, 0.9);
+      --border-color: rgba(56, 189, 248, 0.25);
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --accent: #38bdf8;
+      --accent-strong: #0284c7;
+      --accent-glow: rgba(56, 189, 248, 0.28);
+      --digit-bg: rgba(15, 23, 42, 0.9);
+      --success: #34d399;
+      --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+    }
+
+    body[data-theme="glass"] {
+      --bg-base: #0f0c29;
+      --bg-card: rgba(255, 255, 255, 0.08);
+      --bg-card-hover: rgba(255, 255, 255, 0.13);
+      --border-color: rgba(255, 255, 255, 0.18);
+      --text-primary: #ffffff;
+      --text-secondary: #cbd5e1;
+      --accent: #a78bfa;
+      --accent-strong: #7c3aed;
+      --accent-glow: rgba(167, 139, 250, 0.3);
+      --digit-bg: rgba(255, 255, 255, 0.1);
+      --success: #4ade80;
+    }
+
+    body[data-theme="retro"] {
+      --bg-base: #07120b;
+      --bg-card: rgba(10, 26, 16, 0.94);
+      --bg-card-hover: rgba(16, 40, 24, 0.98);
+      --border-color: rgba(52, 211, 153, 0.45);
+      --text-primary: #ecfdf5;
+      --text-secondary: #6ee7b7;
+      --accent: #fbbf24;
+      --accent-strong: #d97706;
+      --accent-glow: rgba(251, 191, 36, 0.25);
+      --digit-bg: rgba(4, 15, 9, 0.95);
+      --success: #34d399;
+    }
+
+    body[data-theme="light"] {
+      --bg-base: #f1f5f9;
+      --bg-card: rgba(255, 255, 255, 0.92);
+      --bg-card-hover: #ffffff;
+      --border-color: rgba(15, 23, 42, 0.12);
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --accent: #2563eb;
+      --accent-strong: #1d4ed8;
+      --accent-glow: rgba(37, 99, 235, 0.15);
+      --digit-bg: #f8fafc;
+      --success: #16a34a;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--bg-base);
+      color: var(--text-primary);
+      transition: background-color 0.25s ease, color 0.25s ease;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .theme-bg {
+      position: fixed;
+      inset: 0;
+      z-index: -2;
+      pointer-events: none;
+    }
+
+    #matrixCanvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      pointer-events: none;
+      opacity: 0.55;
+      transition: opacity 0.3s ease;
+    }
+
+    body[data-theme="light"] #matrixCanvas {
+      opacity: 0.3;
+    }
+
+    body[data-theme="cyber"] .theme-bg {
+      background:
+        radial-gradient(circle at 20% 15%, rgba(56, 189, 248, 0.14), transparent 45%),
+        radial-gradient(circle at 80% 85%, rgba(37, 99, 235, 0.16), transparent 50%),
+        linear-gradient(to right, rgba(56, 189, 248, 0.03) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(56, 189, 248, 0.03) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 36px 36px, 36px 36px;
+    }
+
+    body[data-theme="glass"] .theme-bg {
+      background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+    }
+
+    body[data-theme="retro"] .theme-bg {
+      background:
+        radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.18), transparent 60%),
+        repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.2) 0px, rgba(0, 0, 0, 0.2) 1px, transparent 1px, transparent 3px);
+    }
+
+    body[data-theme="light"] .theme-bg {
+      background:
+        radial-gradient(circle at 15% 15%, rgba(37, 99, 235, 0.08), transparent 45%),
+        radial-gradient(circle at 85% 85%, rgba(14, 165, 233, 0.08), transparent 45%),
+        #f1f5f9;
+    }
+
+    .card-surface {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+
+    .digit-box {
+      background: var(--digit-bg);
+      border: 1px solid var(--border-color);
+      box-shadow: 0 0 24px -8px var(--accent-glow);
+      font-family: var(--font-mono);
+    }
+
+    .accent-text {
+      color: var(--accent);
+    }
+
+    .accent-btn {
+      background: var(--accent);
+      color: #040814;
+      font-weight: 600;
+    }
+
+    body[data-theme="light"] .accent-btn,
+    body[data-theme="glass"] .accent-btn {
+      color: #ffffff;
+    }
+
+    .accent-btn:hover {
+      filter: brightness(1.08);
+    }
+
+    .mono {
+      font-family: var(--font-mono);
+    }
+
+    body.lock-mode .edit-only {
+      display: none !important;
+    }
+
+    body.lock-mode .main-shell {
+      max-width: 780px;
+      padding-top: 2rem;
+    }
+
+    .toast-enter {
+      animation: slideUp 0.22s ease-out forwards;
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body data-theme="cyber" class="antialiased selection:bg-sky-500/30">
+  <div class="theme-bg"></div>
+  <canvas id="matrixCanvas" aria-hidden="true"></canvas>
+
+  <!-- Top Controls Bar -->
+  <header class="w-full border-b border-[var(--border-color)] bg-[var(--bg-card)] backdrop-blur-md sticky top-0 z-30">
+    <div class="max-w-6xl mx-auto px-4 py-2.5 flex flex-wrap items-center justify-between gap-2">
+      <div class="flex items-center gap-2 min-w-0">
+        <span class="inline-flex h-2.5 w-2.5 rounded-full bg-[var(--accent)] animate-pulse shrink-0"></span>
+        <span id="headerBrand" class="text-xs sm:text-sm font-semibold tracking-wide truncate">
+          AI BUILDERS CHALLENGE NA · IBM × BEMYAPP
+        </span>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2">
+        <!-- Theme Switcher -->
+        <div class="flex items-center gap-1 rounded-lg p-1 border border-[var(--border-color)] bg-[var(--digit-bg)] edit-only" role="group" aria-label="Theme selector">
+          <button type="button" data-theme-btn="cyber" class="theme-btn px-2 py-1 text-xs rounded-md transition">Cyber</button>
+          <button type="button" data-theme-btn="glass" class="theme-btn px-2 py-1 text-xs rounded-md transition">Glass</button>
+          <button type="button" data-theme-btn="retro" class="theme-btn px-2 py-1 text-xs rounded-md transition">Retro</button>
+          <button type="button" data-theme-btn="light" class="theme-btn px-2 py-1 text-xs rounded-md transition">Light</button>
+        </div>
+
+        <!-- Digital Rain Toggle -->
+        <button id="rainToggleBtn" type="button" class="edit-only px-2.5 py-1.5 text-xs font-semibold rounded-lg border border-[var(--border-color)] hover:bg-[var(--bg-card-hover)] transition">
+          Rain: ON
+        </button>
+
+        <!-- Download Android APK Link -->
+        <a id="downloadApkLink" href="https://drive.google.com/uc?export=download&id=1O2RIqffj_PCaf1n1s7TJoUW3QekJIFvv" target="_blank" rel="noopener noreferrer" class="edit-only accent-btn px-2.5 py-1.5 text-xs rounded-lg transition flex items-center gap-1" title="Download Android Lock Screen App (.apk)">
+          <span>📱</span>
+          <span>Android APK</span>
+        </a>
+
+        <!-- Download App Button -->
+        <button id="downloadAppBtn" type="button" class="edit-only px-2.5 py-1.5 text-xs font-semibold rounded-lg border border-[var(--border-color)] hover:bg-[var(--bg-card-hover)] transition flex items-center gap-1" title="Download standalone HTML app to your device">
+          <span>⬇</span>
+          <span class="hidden sm:inline">Download App</span>
+        </button>
+
+        <!-- Lock Screen Mode Toggle -->
+        <button id="lockModeBtn" type="button" class="px-3 py-1.5 text-xs font-semibold rounded-lg border border-[var(--border-color)] hover:bg-[var(--bg-card-hover)] transition flex items-center gap-1.5">
+          <span id="lockModeIcon">🔒</span>
+          <span id="lockModeLabel">Lock Screen View</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-shell max-w-6xl mx-auto px-4 py-5 sm:py-8 space-y-6">
+    <!-- Hero Countdown Lock Screen Card -->
+    <section class="card-surface rounded-2xl p-5 sm:p-8 shadow-2xl">
+      <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
+        <div class="space-y-1.5">
+          <div class="inline-flex flex-wrap items-center gap-2 text-xs font-medium">
+            <span id="prizeBadge" class="px-2.5 py-0.5 rounded-full border border-[var(--border-color)] accent-text bg-[var(--digit-bg)]">
+              $15,000 Prize Pool · $10,000 Grand Prize
+            </span>
+            <span id="trackBadge" class="px-2.5 py-0.5 rounded-full border border-[var(--border-color)] text-[var(--text-secondary)]">
+              Track: Wildcard Challenge
+            </span>
+          </div>
+          <h1 id="mainTitle" class="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight">
+            AI Builders Challenge Countdown
+          </h1>
+          <p id="deadlineSubtitle" class="text-xs sm:text-sm text-[var(--text-secondary)]">
+            Target: Dec 2, 2026 at 5:00 PM EST (4:00 PM CST) · IBM Bob Prototype
+          </p>
+        </div>
+
+        <!-- Deadline Preset Selector + Email Import -->
+        <div class="edit-only flex flex-col items-start md:items-end gap-1.5 shrink-0">
+          <div class="flex items-center gap-2">
+            <label for="deadlinePreset" class="text-[11px] uppercase tracking-wider text-[var(--text-secondary)] font-semibold">
+              Deadline Source
+            </label>
+            <button id="openImportEmailBtn" type="button" class="text-[11px] font-semibold px-2 py-0.5 rounded border border-[var(--border-color)] accent-text bg-[var(--digit-bg)] hover:bg-[var(--bg-card-hover)] transition">
+              + Import Email
+            </button>
+          </div>
+          <select id="deadlinePreset" class="text-xs rounded-lg px-2.5 py-1.5 bg-[var(--digit-bg)] border border-[var(--border-color)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] max-w-xs">
+            <option value="2026-12-02T17:00:00-05:00">Dec 2, 2026 · 5:00 PM EST (PNW Email)</option>
+            <option value="2026-12-10T17:00:00-05:00">Dec 10, 2026 · 5:00 PM EST (BeMyApp Email)</option>
+            <option value="custom">Custom Date &amp; Time...</option>
+          </select>
+          <input id="customDeadlineInput" type="datetime-local" class="hidden text-xs rounded-lg px-2.5 py-1 bg-[var(--digit-bg)] border border-[var(--border-color)] text-[var(--text-primary)]" />
+        </div>
+      </div>
+
+      <!-- Live Countdown Digits -->
+      <div class="grid grid-cols-4 gap-2.5 sm:gap-4 mb-6" aria-live="polite">
+        <div class="digit-box rounded-xl p-3 sm:p-5 text-center">
+          <div id="cdDays" class="text-2xl sm:text-5xl md:text-6xl font-extrabold accent-text leading-none">--</div>
+          <div class="text-[10px] sm:text-xs uppercase tracking-widest text-[var(--text-secondary)] mt-2">Days</div>
+        </div>
+        <div class="digit-box rounded-xl p-3 sm:p-5 text-center">
+          <div id="cdHours" class="text-2xl sm:text-5xl md:text-6xl font-extrabold leading-none">--</div>
+          <div class="text-[10px] sm:text-xs uppercase tracking-widest text-[var(--text-secondary)] mt-2">Hours</div>
+        </div>
+        <div class="digit-box rounded-xl p-3 sm:p-5 text-center">
+          <div id="cdMinutes" class="text-2xl sm:text-5xl md:text-6xl font-extrabold leading-none">--</div>
+          <div class="text-[10px] sm:text-xs uppercase tracking-widest text-[var(--text-secondary)] mt-2">Mins</div>
+        </div>
+        <div class="digit-box rounded-xl p-3 sm:p-5 text-center">
+          <div id="cdSeconds" class="text-2xl sm:text-5xl md:text-6xl font-extrabold accent-text leading-none">--</div>
+          <div class="text-[10px] sm:text-xs uppercase tracking-widest text-[var(--text-secondary)] mt-2">Secs</div>
+        </div>
+      </div>
+
+      <!-- Next Milestone Spotlight + Progress Bar -->
+      <div class="space-y-3">
+        <div class="flex flex-wrap items-center justify-between gap-2 text-xs sm:text-sm">
+          <div class="flex items-center gap-2 min-w-0">
+            <span class="px-2 py-0.5 rounded bg-[var(--accent)] text-[#040814] font-bold text-[11px] shrink-0">NEXT UP</span>
+            <span id="nextMilestoneText" class="font-medium truncate">Loading next milestone...</span>
+          </div>
+          <span id="progressLabel" class="mono text-xs text-[var(--text-secondary)] shrink-0">0% Complete</span>
+        </div>
+        <div class="w-full h-2.5 rounded-full bg-[var(--digit-bg)] border border-[var(--border-color)] overflow-hidden">
+          <div id="progressBar" class="h-full bg-[var(--accent)] transition-all duration-500" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <!-- Track Picker (Edit Mode) -->
+      <div class="edit-only mt-5 pt-4 border-t border-[var(--border-color)] flex flex-wrap items-center justify-between gap-3">
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-xs text-[var(--text-secondary)] font-medium">Challenge Track:</span>
+          <button type="button" data-track="AI for Good" class="track-btn px-2.5 py-1 text-xs rounded-lg border border-[var(--border-color)] transition">AI for Good</button>
+          <button type="button" data-track="AI for Business" class="track-btn px-2.5 py-1 text-xs rounded-lg border border-[var(--border-color)] transition">AI for Business</button>
+          <button type="button" data-track="Wildcard Challenge" class="track-btn px-2.5 py-1 text-xs rounded-lg border border-[var(--border-color)] transition">Wildcard Challenge</button>
+        </div>
+        <div class="text-xs text-[var(--text-secondary)] mono" id="localClock">--:--:--</div>
+      </div>
+    </section>
+
+    <!-- Two-Column Responsive Workspace: Milestones & Customizable Reminders -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <!-- Backward-Planned Milestones -->
+      <section class="lg:col-span-7 card-surface rounded-2xl p-5 sm:p-6 flex flex-col">
+        <div class="flex items-center justify-between gap-2 mb-4">
+          <div>
+            <h2 class="text-lg font-bold">Backward-Planned Milestones</h2>
+            <p class="text-xs text-[var(--text-secondary)]">Tap any step to mark complete</p>
+          </div>
+          <button id="resetMilestonesBtn" type="button" class="edit-only text-xs px-2.5 py-1 rounded-lg border border-[var(--border-color)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition">
+            Reset
+          </button>
+        </div>
+
+        <ul id="milestoneList" class="space-y-2.5 flex-1"></ul>
+
+        <!-- Add Custom Milestone -->
+        <form id="addMilestoneForm" class="edit-only mt-4 pt-4 border-t border-[var(--border-color)] flex flex-col sm:flex-row gap-2">
+          <input id="newMilestoneDate" type="text" placeholder="Date (e.g. Nov 26)" required class="sm:w-32 px-3 py-2 text-xs rounded-lg bg-[var(--digit-bg)] border border-[var(--border-color)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]" />
+          <input id="newMilestoneTitle" type="text" placeholder="Add a custom milestone..." required class="flex-1 px-3 py-2 text-xs rounded-lg bg-[var(--digit-bg)] border border-[var(--border-color)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]" />
+          <button type="submit" class="accent-btn px-4 py-2 text-xs rounded-lg transition shrink-0">+ Add Step</button>
+        </form>
+      </section>
+
+      <!-- Customizable Reminders -->
+      <section class="edit-only lg:col-span-5 card-surface rounded-2xl p-5 sm:p-6 flex flex-col">
+        <div class="flex items-center justify-between gap-2 mb-4">
+          <div>
+            <h2 class="text-lg font-bold">Custom Reminders</h2>
+            <p class="text-xs text-[var(--text-secondary)]">Customize alerts or export to Outlook/Google Cal</p>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <button id="testReminderBtn" type="button" class="text-xs px-2.5 py-1.5 rounded-lg border border-[var(--border-color)] hover:bg-[var(--bg-card-hover)] transition" title="Preview reminder alert">
+              🔔 Test
+            </button>
+            <button id="exportIcsBtn" type="button" class="accent-btn text-xs px-3 py-1.5 rounded-lg transition" title="Download .ics calendar file">
+              Export .ics
+            </button>
+          </div>
+        </div>
+
+        <ul id="reminderList" class="space-y-2.5 flex-1"></ul>
+
+        <!-- Add / Customize Reminder Form -->
+        <form id="addReminderForm" class="mt-4 pt-4 border-t border-[var(--border-color)] space-y-2.5">
+          <input id="remTitle" type="text" placeholder="Reminder label (e.g. Record 3-min demo)" required class="w-full px-3 py-2 text-xs rounded-lg bg-[var(--digit-bg)] border border-[var(--border-color)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]" />
+          <div class="grid grid-cols-2 gap-2">
+            <input id="remTime" type="time" value="18:00" required class="px-3 py-2 text-xs rounded-lg bg-[var(--digit-bg)] border border-[var(--border-color)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]" />
+            <select id="remCadence" class="px-3 py-2 text-xs rounded-lg bg-[var(--digit-bg)] border border-[var(--border-color)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]">
+              <option value="Daily">Daily</option>
+              <option value="Weekdays">Weekdays (Mon–Fri)</option>
+              <option value="Once">One-time</option>
+            </select>
+          </div>
+          <button type="submit" class="w-full accent-btn py-2 text-xs rounded-lg transition">+ Add Custom Reminder</button>
+        </form>
+      </section>
+    </div>
+
+    <!-- Footer Tip -->
+    <footer class="edit-only text-center text-xs text-[var(--text-secondary)] pb-4">
+      Tip: Click <span class="font-semibold text-[var(--text-primary)]">Lock Screen View</span> for a clean wallpaper, or <span class="font-semibold text-[var(--text-primary)]">Download App</span> to save and run this file offline on any device.
+    </footer>
+  </main>
+
+  <!-- Import Email Modal -->
+  <div id="importEmailModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+    <div class="card-surface rounded-2xl max-w-lg w-full p-5 sm:p-6 space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between gap-2">
+        <div>
+          <h3 class="text-base sm:text-lg font-bold">Import Deadline from Email</h3>
+          <p class="text-xs text-[var(--text-secondary)]">Paste an email or upload a .eml / .txt file to extract its deadline &amp; goals</p>
+        </div>
+        <button id="closeImportModalBtn" type="button" class="text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] px-2 py-1 rounded">✕</button>
+      </div>
+
+      <form id="importEmailForm" class="space-y-3">
+        <div>
+          <label for="emailFileInput" class="block text-xs font-medium text-[var(--text-secondary)] mb-1">Optional: Upload .eml or .txt</label>
+          <input id="emailFileInput" type="file" accept=".eml,.txt" class="text-xs text-[var(--text-secondary)] file:mr-2 file:py-1 file:px-2.5 file:rounded-md file:border file:border-[var(--border-color)] file:bg-[var(--digit-bg)] file:text-[var(--text-primary)] file:text-xs cursor-pointer" />
+        </div>
+        <div>
+          <label for="emailPasteInput" class="block text-xs font-medium text-[var(--text-secondary)] mb-1">Email Content</label>
+          <textarea id="emailPasteInput" rows="7" required placeholder="Paste email subject, body, deadline date/time, and bulleted requirements here..." class="w-full px-3 py-2 text-xs rounded-lg bg-[var(--digit-bg)] border border-[var(--border-color)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"></textarea>
+        </div>
+        <div class="flex items-center justify-end gap-2">
+          <button id="cancelImportBtn" type="button" class="px-3 py-2 text-xs rounded-lg border border-[var(--border-color)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]">Cancel</button>
+          <button type="submit" class="accent-btn px-4 py-2 text-xs rounded-lg transition">Parse &amp; Apply Deadline</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-xs w-full pointer-events-none"></div>
+
+  <script>
+    (function () {
+      const STORAGE_KEY = 'ai_builders_countdown_v2';
+
+      const DEFAULT_MILESTONES_DEC2 = [
+        { id: 'm1', date: 'Nov 17', title: 'Complete 15-min IBM SkillsBuild intro course & pick track', done: false },
+        { id: 'm2', date: 'Nov 19', title: 'Watch IBM Bob demo replay & set up IBM Bob IDE', done: false },
+        { id: 'm3', date: 'Nov 22', title: 'Finalize team (1–5) & lock in prototype scope', done: false },
+        { id: 'm4', date: 'Nov 25', title: 'Build core working AI prototype in IBM Bob', done: false },
+        { id: 'm5', date: 'Nov 28', title: 'Test edge cases & draft presentation slides', done: false },
+        { id: 'm6', date: 'Nov 30', title: 'Record & edit required 3-minute project video', done: false },
+        { id: 'm7', date: 'Dec 2', title: 'Final QA & submit before 5:00 PM EST (4:00 PM CST)', done: false }
+      ];
+
+      const DEFAULT_MILESTONES_DEC10 = [
+        { id: 'm1', date: 'Nov 18', title: 'Complete 15-min IBM SkillsBuild intro course & pick track', done: false },
+        { id: 'm2', date: 'Nov 21', title: 'Watch IBM Bob demo replay & set up IBM Bob IDE', done: false },
+        { id: 'm3', date: 'Nov 25', title: 'Finalize team (1–5) & lock in prototype scope', done: false },
+        { id: 'm4', date: 'Nov 30', title: 'Build core working AI prototype in IBM Bob', done: false },
+        { id: 'm5', date: 'Dec 4', title: 'Test edge cases & draft presentation slides', done: false },
+        { id: 'm6', date: 'Dec 7', title: 'Record & edit required 3-minute project video', done: false },
+        { id: 'm7', date: 'Dec 10', title: 'Final QA & submit before 5:00 PM EST (4:00 PM CST)', done: false }
+      ];
+
+      const DEFAULT_REMINDERS = [
+        { id: 'r1', title: 'AI Builders Sprint: 45-min IBM Bob build block', time: '19:00', cadence: 'Daily', enabled: true },
+        { id: 'r2', title: 'Check next milestone on Countdown Lock Screen', time: '09:00', cadence: 'Weekdays', enabled: true }
+      ];
+
+      let state = {
+        theme: 'cyber',
+        rainEnabled: true,
+        track: 'Wildcard Challenge',
+        deadlinePreset: '2026-12-02T17:00:00-05:00',
+        customDeadline: '',
+        customTitle: '',
+        lockMode: false,
+        importedDeadlines: [],
+        milestones: JSON.parse(JSON.stringify(DEFAULT_MILESTONES_DEC2)),
+        reminders: JSON.parse(JSON.stringify(DEFAULT_REMINDERS)),
+        lastAlertMinute: ''
+      };
+
+      function loadState() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            state = { ...state, ...parsed };
+          }
+        } catch (e) {
+          // Safe fallback when storage is unavailable
+        }
+      }
+
+      function saveState() {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        } catch (e) {
+          // Ignore storage quota/sandbox errors
+        }
+      }
+
+      function showToast(message) {
+        const container = document.getElementById('toastContainer');
+        const el = document.createElement('div');
+        el.className = 'toast-enter pointer-events-auto card-surface rounded-xl px-4 py-3 text-xs shadow-xl border-l-4 border-l-[var(--accent)] flex items-center justify-between gap-2';
+        el.innerHTML = '<span></span><button type="button" class="text-[var(--text-secondary)] hover:text-[var(--text-primary)] font-bold">✕</button>';
+        el.querySelector('span').textContent = message;
+        el.querySelector('button').addEventListener('click', () => el.remove());
+        container.appendChild(el);
+        setTimeout(() => {
+          if (el.parentNode) el.remove();
+        }, 4500);
+      }
+
+      /* ---------------- Matrix Digital Rain ---------------- */
+      const canvas = document.getElementById('matrixCanvas');
+      const ctx = canvas.getContext('2d');
+      const RAIN_CHARS = '0123456789ABCDEF01アイウエオカキクケコ';
+      const FONT_SIZE = 15;
+      let columns = 0;
+      let drops = [];
+      let rainTimer = null;
+
+      function getRainColors() {
+        if (state.theme === 'cyber') {
+          return { fade: 'rgba(4, 8, 20, 0.08)', trail: '#0ea5e9', head: '#e0f2fe' };
+        }
+        if (state.theme === 'glass') {
+          return { fade: 'rgba(15, 12, 41, 0.09)', trail: '#a78bfa', head: '#ede9fe' };
+        }
+        if (state.theme === 'retro') {
+          return { fade: 'rgba(7, 18, 11, 0.09)', trail: '#34d399', head: '#fef08a' };
+        }
+        return { fade: 'rgba(241, 245, 249, 0.14)', trail: '#2563eb', head: '#0f172a' };
+      }
+
+      function initRainGrid() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        columns = Math.max(1, Math.floor(canvas.width / FONT_SIZE));
+        drops = Array.from({ length: columns }, () => Math.floor(Math.random() * -40));
+      }
+
+      function drawRainFrame() {
+        if (!state.rainEnabled) return;
+        const colors = getRainColors();
+        ctx.fillStyle = colors.fade;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.font = `${FONT_SIZE}px "JetBrains Mono", monospace`;
+
+        for (let i = 0; i < drops.length; i++) {
+          const char = RAIN_CHARS[Math.floor(Math.random() * RAIN_CHARS.length)];
+          const x = i * FONT_SIZE;
+          const y = drops[i] * FONT_SIZE;
+
+          ctx.fillStyle = Math.random() > 0.85 ? colors.head : colors.trail;
+          ctx.fillText(char, x, y);
+
+          if (y > canvas.height && Math.random() > 0.975) {
+            drops[i] = 0;
+          }
+          drops[i]++;
+        }
+      }
+
+      function syncRainState() {
+        const btn = document.getElementById('rainToggleBtn');
+        btn.textContent = state.rainEnabled ? 'Rain: ON' : 'Rain: OFF';
+        canvas.style.display = state.rainEnabled ? 'block' : 'none';
+        if (rainTimer) {
+          clearInterval(rainTimer);
+          rainTimer = null;
+        }
+        if (state.rainEnabled) {
+          initRainGrid();
+          rainTimer = setInterval(drawRainFrame, 50);
+        }
+      }
+
+      window.addEventListener('resize', () => {
+        if (state.rainEnabled) initRainGrid();
+      });
+
+      /* ---------------- Countdown & Formatting ---------------- */
+      function getTargetMs() {
+        if (state.deadlinePreset === 'custom' && state.customDeadline) {
+          const ms = new Date(state.customDeadline).getTime();
+          if (!Number.isNaN(ms)) return ms;
+        }
+        const imported = state.importedDeadlines.find((item) => item.id === state.deadlinePreset);
+        if (imported) {
+          const ms = new Date(imported.iso).getTime();
+          if (!Number.isNaN(ms)) return ms;
+        }
+        return new Date(state.deadlinePreset).getTime();
+      }
+
+      function pad(n) {
+        return String(Math.max(0, Math.floor(n))).padStart(2, '0');
+      }
+
+      function formatTime12(hhmm) {
+        const [hStr, mStr] = hhmm.split(':');
+        let h = parseInt(hStr, 10);
+        const ampm = h >= 12 ? 'PM' : 'AM';
+        h = h % 12 || 12;
+        return `${h}:${mStr} ${ampm}`;
+      }
+
+      function updateCountdown() {
+        const now = Date.now();
+        const target = getTargetMs();
+        const diff = Math.max(0, target - now);
+
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+        const minutes = Math.floor((diff / (1000 * 60)) % 60);
+        const seconds = Math.floor((diff / 1000) % 60);
+
+        document.getElementById('cdDays').textContent = pad(days);
+        document.getElementById('cdHours').textContent = pad(hours);
+        document.getElementById('cdMinutes').textContent = pad(minutes);
+        document.getElementById('cdSeconds').textContent = pad(seconds);
+
+        const dNow = new Date(now);
+        document.getElementById('localClock').textContent = dNow.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+        const hhmm = `${pad(dNow.getHours())}:${pad(dNow.getMinutes())}`;
+        const dayOfWeek = dNow.getDay();
+        const isWeekday = dayOfWeek >= 1 && dayOfWeek <= 5;
+        if (state.lastAlertMinute !== hhmm) {
+          state.lastAlertMinute = hhmm;
+          state.reminders.forEach((r) => {
+            if (!r.enabled || r.time !== hhmm) return;
+            if (r.cadence === 'Weekdays' && !isWeekday) return;
+            showToast(`⏰ Reminder: ${r.title}`);
+          });
+        }
+      }
+
+      /* ---------------- Email Parser ---------------- */
+      function parseEmailText(rawText) {
+        const lines = rawText.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+        let title = 'Imported Email Deadline';
+        const subjLine = lines.find((l) => /^subject:/i.test(l));
+        if (subjLine) {
+          title = subjLine.replace(/^subject:\s*/i, '').trim();
+        } else if (lines.length > 0) {
+          title = lines[0].slice(0, 72);
+        }
+
+        const months = 'january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sep|sept|oct|nov|dec';
+        const dateRegex = new RegExp(`(${months})\\s+(\\d{1,2})(?:,?\\s+(\\d{4}))?(?:\\s*(?:at|,)?\\s*(\\d{1,2})(?::(\\d{2}))?\\s*(a\\.?m\\.?|p\\.?m\\.?)?)?`, 'i');
+        const match = rawText.match(dateRegex);
+
+        let targetDate = new Date(Date.now() + 7 * 86400000);
+        targetDate.setHours(17, 0, 0, 0);
+
+        if (match) {
+          const monthStr = match[1];
+          const dayNum = parseInt(match[2], 10);
+          const yearNum = match[3] ? parseInt(match[3], 10) : new Date().getFullYear();
+          let hourNum = match[4] ? parseInt(match[4], 10) : 17;
+          const minNum = match[5] ? parseInt(match[5], 10) : 0;
+          const ampm = (match[6] || '').replace(/\./g, '').toLowerCase();
+          if (ampm === 'pm' && hourNum < 12) hourNum += 12;
+          if (ampm === 'am' && hourNum === 12) hourNum = 0;
+
+          const parsed = new Date(`${monthStr} ${dayNum}, ${yearNum} ${pad(hourNum)}:${pad(minNum)}:00`);
+          if (!Number.isNaN(parsed.getTime())) {
+            targetDate = parsed;
+          }
+        }
+
+        const bulletLines = lines
+          .filter((l) => /^([-*•]|\d+\.)\s+/.test(l))
+          .map((l) => l.replace(/^([-*•]|\d+\.)\s+/, '').trim())
+          .filter((l) => l.length > 4 && l.length < 120)
+          .slice(0, 6);
+
+        const nowMs = Date.now();
+        const spanMs = Math.max(86400000, targetDate.getTime() - nowMs);
+        const fmtShort = (d) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+        let generatedMilestones = [];
+        if (bulletLines.length > 0) {
+          generatedMilestones = bulletLines.map((text, idx) => {
+            const frac = (idx + 1) / (bulletLines.length + 1);
+            const mDate = new Date(nowMs + spanMs * frac);
+            return { id: `imp_m_${Date.now()}_${idx}`, date: fmtShort(mDate), title: text, done: false };
+          });
+        } else {
+          generatedMilestones = [
+            { id: `imp_m_${Date.now()}_1`, date: fmtShort(new Date(nowMs + spanMs * 0.25)), title: 'Review requirements & gather materials', done: false },
+            { id: `imp_m_${Date.now()}_2`, date: fmtShort(new Date(nowMs + spanMs * 0.6)), title: 'Complete core draft / prototype', done: false }
+          ];
+        }
+        generatedMilestones.push({
+          id: `imp_m_${Date.now()}_final`,
+          date: fmtShort(targetDate),
+          title: `Final submission: ${title.slice(0, 48)}`,
+          done: false
+        });
+
+        return {
+          id: 'email_' + Date.now(),
+          label: `${fmtShort(targetDate)} · ${title.slice(0, 28)} (Email)`,
+          title,
+          iso: targetDate.toISOString(),
+          subtitle: `Target: ${targetDate.toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })} · Imported from Email`,
+          milestones: generatedMilestones
+        };
+      }
+
+      /* ---------------- Renderers ---------------- */
+      function applyTheme() {
+        document.body.setAttribute('data-theme', state.theme);
+        document.querySelectorAll('.theme-btn').forEach((btn) => {
+          const active = btn.getAttribute('data-theme-btn') === state.theme;
+          btn.className = active
+            ? 'theme-btn px-2 py-1 text-xs rounded-md transition accent-btn'
+            : 'theme-btn px-2 py-1 text-xs rounded-md transition text-[var(--text-secondary)] hover:text-[var(--text-primary)]';
+        });
+      }
+
+      function applyLockMode() {
+        document.body.classList.toggle('lock-mode', state.lockMode);
+        document.getElementById('lockModeIcon').textContent = state.lockMode ? '🔓' : '🔒';
+        document.getElementById('lockModeLabel').textContent = state.lockMode ? 'Exit Lock View' : 'Lock Screen View';
+      }
+
+      function rebuildDeadlineDropdown() {
+        const presetSel = document.getElementById('deadlinePreset');
+        presetSel.innerHTML = '';
+        const baseOptions = [
+          { value: '2026-12-02T17:00:00-05:00', text: 'Dec 2, 2026 · 5:00 PM EST (PNW Email)' },
+          { value: '2026-12-10T17:00:00-05:00', text: 'Dec 10, 2026 · 5:00 PM EST (BeMyApp Email)' }
+        ];
+        baseOptions.forEach((o) => {
+          const opt = document.createElement('option');
+          opt.value = o.value;
+          opt.textContent = o.text;
+          presetSel.appendChild(opt);
+        });
+        state.importedDeadlines.forEach((imp) => {
+          const opt = document.createElement('option');
+          opt.value = imp.id;
+          opt.textContent = imp.label;
+          presetSel.appendChild(opt);
+        });
+        const customOpt = document.createElement('option');
+        customOpt.value = 'custom';
+        customOpt.textContent = 'Custom Date & Time...';
+        presetSel.appendChild(customOpt);
+        presetSel.value = state.deadlinePreset;
+      }
+
+      function renderHeaderMeta() {
+        rebuildDeadlineDropdown();
+        document.getElementById('trackBadge').textContent = `Track: ${state.track}`;
+        document.querySelectorAll('.track-btn').forEach((btn) => {
+          const active = btn.getAttribute('data-track') === state.track;
+          btn.className = active
+            ? 'track-btn px-2.5 py-1 text-xs rounded-lg border border-[var(--accent)] accent-btn transition'
+            : 'track-btn px-2.5 py-1 text-xs rounded-lg border border-[var(--border-color)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition';
+        });
+
+        const customInput = document.getElementById('customDeadlineInput');
+        const imported = state.importedDeadlines.find((item) => item.id === state.deadlinePreset);
+
+        if (imported) {
+          customInput.classList.add('hidden');
+          document.getElementById('mainTitle').textContent = imported.title;
+          document.getElementById('deadlineSubtitle').textContent = imported.subtitle;
+        } else if (state.deadlinePreset === 'custom') {
+          customInput.classList.remove('hidden');
+          if (state.customDeadline) customInput.value = state.customDeadline;
+          document.getElementById('mainTitle').textContent = 'AI Builders Challenge Countdown';
+          const dt = state.customDeadline ? new Date(state.customDeadline) : null;
+          document.getElementById('deadlineSubtitle').textContent = dt && !Number.isNaN(dt.getTime())
+            ? `Custom Target: ${dt.toLocaleString()} · IBM Bob Prototype`
+            : 'Custom Target · Select date & time';
+        } else {
+          customInput.classList.add('hidden');
+          document.getElementById('mainTitle').textContent = 'AI Builders Challenge Countdown';
+          const label = state.deadlinePreset.startsWith('2026-12-10')
+            ? 'Target: Dec 10, 2026 at 5:00 PM EST (4:00 PM CST) · IBM Bob Prototype'
+            : 'Target: Dec 2, 2026 at 5:00 PM EST (4:00 PM CST) · IBM Bob Prototype';
+          document.getElementById('deadlineSubtitle').textContent = label;
+        }
+      }
+
+      function renderMilestones() {
+        const list = document.getElementById('milestoneList');
+        list.innerHTML = '';
+
+        const total = state.milestones.length;
+        const completed = state.milestones.filter((m) => m.done).length;
+        const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+        document.getElementById('progressLabel').textContent = `${completed}/${total} Done (${pct}%)`;
+        document.getElementById('progressBar').style.width = `${pct}%`;
+
+        const next = state.milestones.find((m) => !m.done);
+        document.getElementById('nextMilestoneText').textContent = next
+          ? `${next.date} — ${next.title}`
+          : 'All milestones complete! Ready to submit.';
+
+        state.milestones.forEach((m) => {
+          const li = document.createElement('li');
+          li.className = `flex items-start gap-3 p-3 rounded-xl border border-[var(--border-color)] transition cursor-pointer ${
+            m.done ? 'opacity-60 bg-[var(--digit-bg)]' : 'bg-[var(--bg-card-hover)] hover:border-[var(--accent)]'
+          }`;
+
+          const check = document.createElement('input');
+          check.type = 'checkbox';
+          check.checked = m.done;
+          check.className = 'mt-0.5 h-4 w-4 accent-[var(--accent)] cursor-pointer shrink-0';
+          check.addEventListener('change', () => {
+            m.done = check.checked;
+            saveState();
+            renderMilestones();
+          });
+
+          const content = document.createElement('div');
+          content.className = 'flex-1 min-w-0';
+          content.innerHTML = `<div class="flex flex-wrap items-center gap-2"><span class="mono text-[11px] font-bold accent-text"></span><span class="text-xs sm:text-sm font-medium ${m.done ? 'line-through' : ''}"></span></div>`;
+          const spans = content.querySelectorAll('span');
+          spans[0].textContent = m.date;
+          spans[1].textContent = m.title;
+
+          li.addEventListener('click', (e) => {
+            if (e.target === check || e.target.closest('.del-m-btn')) return;
+            m.done = !m.done;
+            saveState();
+            renderMilestones();
+          });
+
+          const delBtn = document.createElement('button');
+          delBtn.type = 'button';
+          delBtn.className = 'edit-only del-m-btn text-xs text-[var(--text-secondary)] hover:text-rose-400 px-1.5 py-0.5 rounded shrink-0';
+          delBtn.textContent = '✕';
+          delBtn.title = 'Remove milestone';
+          delBtn.addEventListener('click', () => {
+            state.milestones = state.milestones.filter((item) => item.id !== m.id);
+            saveState();
+            renderMilestones();
+          });
+
+          li.append(check, content, delBtn);
+          list.appendChild(li);
+        });
+      }
+
+      function renderReminders() {
+        const list = document.getElementById('reminderList');
+        list.innerHTML = '';
+
+        if (state.reminders.length === 0) {
+          const empty = document.createElement('li');
+          empty.className = 'text-xs text-[var(--text-secondary)] p-4 text-center border border-dashed border-[var(--border-color)] rounded-xl';
+          empty.textContent = 'No reminders set. Add one below!';
+          list.appendChild(empty);
+          return;
+        }
+
+        state.reminders.forEach((r) => {
+          const li = document.createElement('li');
+          li.className = `p-3 rounded-xl border border-[var(--border-color)] bg-[var(--digit-bg)] flex items-center justify-between gap-2 ${
+            r.enabled ? '' : 'opacity-55'
+          }`;
+
+          const left = document.createElement('div');
+          left.className = 'min-w-0 flex-1';
+          left.innerHTML = '<div class="text-xs sm:text-sm font-semibold truncate"></div><div class="text-[11px] text-[var(--text-secondary)] mono mt-0.5"></div>';
+          left.querySelector('div:first-child').textContent = r.title;
+          left.querySelector('div:last-child').textContent = `${formatTime12(r.time)} · ${r.cadence}`;
+
+          const controls = document.createElement('div');
+          controls.className = 'flex items-center gap-1.5 shrink-0';
+
+          const toggleBtn = document.createElement('button');
+          toggleBtn.type = 'button';
+          toggleBtn.className = `px-2 py-1 text-[11px] font-semibold rounded-md border border-[var(--border-color)] ${
+            r.enabled ? 'accent-btn' : 'text-[var(--text-secondary)]'
+          }`;
+          toggleBtn.textContent = r.enabled ? 'ON' : 'OFF';
+          toggleBtn.addEventListener('click', () => {
+            r.enabled = !r.enabled;
+            saveState();
+            renderReminders();
+          });
+
+          const gcalLink = document.createElement('a');
+          gcalLink.href = buildGCalUrl(r);
+          gcalLink.target = '_blank';
+          gcalLink.rel = 'noopener noreferrer';
+          gcalLink.className = 'px-2 py-1 text-[11px] rounded-md border border-[var(--border-color)] hover:bg-[var(--bg-card-hover)] transition';
+          gcalLink.textContent = 'GCal';
+          gcalLink.title = 'Add to Google Calendar';
+
+          const delBtn = document.createElement('button');
+          delBtn.type = 'button';
+          delBtn.className = 'text-xs text-[var(--text-secondary)] hover:text-rose-400 px-1.5 py-1 rounded';
+          delBtn.textContent = '✕';
+          delBtn.title = 'Delete reminder';
+          delBtn.addEventListener('click', () => {
+            state.reminders = state.reminders.filter((item) => item.id !== r.id);
+            saveState();
+            renderReminders();
+          });
+
+          controls.append(toggleBtn, gcalLink, delBtn);
+          li.append(left, controls);
+          list.appendChild(li);
+        });
+      }
+
+      function buildGCalUrl(rem) {
+        const [hh, mm] = rem.time.split(':');
+        const start = new Date();
+        start.setHours(parseInt(hh, 10), parseInt(mm, 10), 0, 0);
+        const end = new Date(start.getTime() + 30 * 60000);
+        const fmt = (d) => d.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+        const params = new URLSearchParams({
+          action: 'TEMPLATE',
+          text: rem.title,
+          dates: `${fmt(start)}/${fmt(end)}`,
+          details: 'AI Builders Challenge North America — Countdown Reminder'
+        });
+        if (rem.cadence === 'Daily') params.set('recur', 'RRULE:FREQ=DAILY;UNTIL=20261210T235959Z');
+        if (rem.cadence === 'Weekdays') params.set('recur', 'RRULE:FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR;UNTIL=20261210T235959Z');
+        return `https://calendar.google.com/calendar/render?${params.toString()}`;
+      }
+
+      function exportIcs() {
+        const active = state.reminders.filter((r) => r.enabled);
+        if (active.length === 0) {
+          showToast('Enable at least one reminder to export.');
+          return;
+        }
+        const nowStamp = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+        const lines = [
+          'BEGIN:VCALENDAR',
+          'VERSION:2.0',
+          'PRODID:-//AI Builders Countdown//EN'
+        ];
+        active.forEach((r) => {
+          const [hh, mm] = r.time.split(':');
+          const d = new Date();
+          const y = d.getFullYear();
+          const m = pad(d.getMonth() + 1);
+          const day = pad(d.getDate());
+          const dtStart = `${y}${m}${day}T${hh}${mm}00`;
+          lines.push('BEGIN:VEVENT');
+          lines.push(`UID:${r.id}-${Date.now()}@aibuilders`);
+          lines.push(`DTSTAMP:${nowStamp}`);
+          lines.push(`DTSTART:${dtStart}`);
+          lines.push(`DURATION:PT30M`);
+          lines.push(`SUMMARY:${r.title}`);
+          if (r.cadence === 'Daily') lines.push('RRULE:FREQ=DAILY;UNTIL=20261210T235959Z');
+          if (r.cadence === 'Weekdays') lines.push('RRULE:FREQ=WEEKLY;BYDAY=MO,TU,WE,TH,FR;UNTIL=20261210T235959Z');
+          lines.push('END:VEVENT');
+        });
+        lines.push('END:VCALENDAR');
+
+        const blob = new Blob([lines.join('\r\n')], { type: 'text/calendar;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'ai_builders_reminders.ics';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+        showToast('Downloaded ai_builders_reminders.ics!');
+      }
+
+      function downloadStandaloneApp() {
+        const htmlContent = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+        const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'ai-builders-countdown.html';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+        showToast('Downloaded ai-builders-countdown.html!');
+      }
+
+      /* ---------------- Event Listeners ---------------- */
+      document.querySelectorAll('.theme-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          state.theme = btn.getAttribute('data-theme-btn');
+          saveState();
+          applyTheme();
+        });
+      });
+
+      document.getElementById('rainToggleBtn').addEventListener('click', () => {
+        state.rainEnabled = !state.rainEnabled;
+        saveState();
+        syncRainState();
+      });
+
+      document.getElementById('downloadAppBtn').addEventListener('click', downloadStandaloneApp);
+
+      document.getElementById('lockModeBtn').addEventListener('click', () => {
+        state.lockMode = !state.lockMode;
+        saveState();
+        applyLockMode();
+      });
+
+      document.querySelectorAll('.track-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          state.track = btn.getAttribute('data-track');
+          saveState();
+          renderHeaderMeta();
+        });
+      });
+
+      document.getElementById('deadlinePreset').addEventListener('change', (e) => {
+        state.deadlinePreset = e.target.value;
+        const imported = state.importedDeadlines.find((item) => item.id === state.deadlinePreset);
+        if (imported) {
+          state.milestones = JSON.parse(JSON.stringify(imported.milestones));
+        } else if (state.deadlinePreset === '2026-12-02T17:00:00-05:00') {
+          state.milestones = JSON.parse(JSON.stringify(DEFAULT_MILESTONES_DEC2));
+        } else if (state.deadlinePreset === '2026-12-10T17:00:00-05:00') {
+          state.milestones = JSON.parse(JSON.stringify(DEFAULT_MILESTONES_DEC10));
+        }
+        saveState();
+        renderHeaderMeta();
+        renderMilestones();
+        updateCountdown();
+      });
+
+      document.getElementById('customDeadlineInput').addEventListener('change', (e) => {
+        state.customDeadline = e.target.value;
+        saveState();
+        renderHeaderMeta();
+        updateCountdown();
+      });
+
+      document.getElementById('resetMilestonesBtn').addEventListener('click', () => {
+        const imported = state.importedDeadlines.find((item) => item.id === state.deadlinePreset);
+        if (imported) {
+          state.milestones = JSON.parse(JSON.stringify(imported.milestones));
+        } else {
+          state.milestones = state.deadlinePreset.startsWith('2026-12-10')
+            ? JSON.parse(JSON.stringify(DEFAULT_MILESTONES_DEC10))
+            : JSON.parse(JSON.stringify(DEFAULT_MILESTONES_DEC2));
+        }
+        saveState();
+        renderMilestones();
+        showToast('Milestones reset to schedule.');
+      });
+
+      document.getElementById('addMilestoneForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const dateVal = document.getElementById('newMilestoneDate').value.trim();
+        const titleVal = document.getElementById('newMilestoneTitle').value.trim();
+        if (!dateVal || !titleVal) return;
+        state.milestones.push({ id: 'm_' + Date.now(), date: dateVal, title: titleVal, done: false });
+        document.getElementById('newMilestoneDate').value = '';
+        document.getElementById('newMilestoneTitle').value = '';
+        saveState();
+        renderMilestones();
+      });
+
+      document.getElementById('addReminderForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const title = document.getElementById('remTitle').value.trim();
+        const time = document.getElementById('remTime').value;
+        const cadence = document.getElementById('remCadence').value;
+        if (!title || !time) return;
+        state.reminders.push({ id: 'r_' + Date.now(), title, time, cadence, enabled: true });
+        document.getElementById('remTitle').value = '';
+        saveState();
+        renderReminders();
+        showToast('Custom reminder added!');
+      });
+
+      document.getElementById('testReminderBtn').addEventListener('click', () => {
+        const next = state.milestones.find((m) => !m.done);
+        showToast(next ? `🔔 Next Milestone (${next.date}): ${next.title}` : '🔔 All milestones complete!');
+      });
+
+      document.getElementById('exportIcsBtn').addEventListener('click', exportIcs);
+
+      // Import Email Modal Handlers
+      const modal = document.getElementById('importEmailModal');
+      function closeImportModal() {
+        modal.classList.add('hidden');
+      }
+
+      document.getElementById('openImportEmailBtn').addEventListener('click', () => {
+        modal.classList.remove('hidden');
+      });
+      document.getElementById('closeImportModalBtn').addEventListener('click', closeImportModal);
+      document.getElementById('cancelImportBtn').addEventListener('click', closeImportModal);
+
+      document.getElementById('emailFileInput').addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          document.getElementById('emailPasteInput').value = String(ev.target.result || '');
+        };
+        reader.readAsText(file);
+      });
+
+      document.getElementById('importEmailForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const raw = document.getElementById('emailPasteInput').value.trim();
+        if (!raw) return;
+        const parsed = parseEmailText(raw);
+        state.importedDeadlines.push(parsed);
+        state.deadlinePreset = parsed.id;
+        state.milestones = JSON.parse(JSON.stringify(parsed.milestones));
+        saveState();
+        renderHeaderMeta();
+        renderMilestones();
+        updateCountdown();
+        document.getElementById('emailPasteInput').value = '';
+        document.getElementById('emailFileInput').value = '';
+        closeImportModal();
+        showToast(`Imported "${parsed.title.slice(0, 32)}"!`);
+      });
+
+      // Init
+      loadState();
+      applyTheme();
+      syncRainState();
+      applyLockMode();
+      renderHeaderMeta();
+      renderMilestones();
+      renderReminders();
+      updateCountdown();
+      setInterval(updateCountdown, 1000);
+    })();
+  </script>
+</body>
+</html>
